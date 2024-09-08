@@ -12,7 +12,8 @@ const uint8_t lamp_pin = PD3;
 /// Distance sensor
 VL53L0X sensor;
 
-Intervall sensor_bounds{ 30, 30000 };
+/// conservative measurement bounds the sensor is capable of
+Intervall sensor_bounds{ 30, 1500 };
 
 uint16_t old_distance = 0;
 
@@ -101,7 +102,12 @@ void setup() {
   // todo: get many measureemtns and use median of them (5s setup time)
   //       as long as we take the measurements, blink light
   uint16_t init_distance = get_distance();
-  sensor_bounds.max = init_distance;
+  if (init_distance >= sensor_bounds.max) {
+    ; // do not update, as sensor_bounds.max is initialized with the maximum possible measurement
+  }
+  else {
+    sensor_bounds.max = init_distance;
+  }
   log(sprintf("The initial distance is %ld mm", String(init_distance).c_str()));
 }
 
