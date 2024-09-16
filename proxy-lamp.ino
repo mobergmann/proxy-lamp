@@ -7,7 +7,7 @@ struct Intervall {
 };
 
 /// pin to the transistor, which then switches the lamp
-const uint8_t lamp_pin = PD3;
+const uint8_t lamp_pin = 20;
 
 /// Distance sensor
 VL53L0X sensor;
@@ -35,8 +35,10 @@ void error_protocol(size_t frequency, String message = "", double brightness = .
 
   while (true) {
     set_brightness(brightness);
+    digitalWrite(LED_BUILTIN, HIGH);
     delay(frequency);
     set_brightness(0);
+    digitalWrite(LED_BUILTIN, LOW);
     delay(frequency);
   }
 }
@@ -77,6 +79,8 @@ uint16_t get_distance() {
 void setup() {
   Serial.begin(9600);
   Wire.begin();
+  Wire.setSDA(2);
+  Wire.setSCL(3);
 
   // indicate that the program is running
   pinMode(LED_BUILTIN, OUTPUT);
@@ -85,6 +89,8 @@ void setup() {
   // setup the lamp/ transistor with a brightness of 0
   pinMode(lamp_pin, OUTPUT);
   set_brightness(1);
+
+  error_protocol(1000);
 
   // setup the distance sensor
   {
@@ -108,12 +114,12 @@ void setup() {
   else {
     sensor_bounds.max = init_distance;
   }
-  log(sprintf("The initial distance is %ld mm", String(init_distance).c_str()));
+  log(sprintf("The initial distance is %d mm", String(init_distance).c_str()));
 }
 
 void loop() {
   uint16_t new_distance = get_distance();
-  log(sprintf("Measured Distance %ld mm", String(new_distance).c_str()));
+  log(sprintf("Measured Distance %d mm", String(new_distance).c_str()));
 
   if (new_distance != old_distance) {
     if (new_distance <= sensor_bounds.min) {
